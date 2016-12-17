@@ -5,6 +5,7 @@ import java.sql.Timestamp
 
 import org.squeryl.adapters.PostgreSqlAdapter
 import org.squeryl._
+import org.squeryl.annotations.Column
 import org.squeryl.dsl.{CompositeKey2, ManyToMany, OneToMany}
 
 
@@ -35,7 +36,7 @@ object Main extends App with PrimitiveTypeMode {
     val classDefs = table[ClassDefs]
     val codes = table[Codes]
 
-    val courseRelation = oneToManyRelation(courses, courseCodes).via((c,cc) => c.id === cc.courseId)
+    val courseRelation = manyToManyRelation(courses, codes).via[CourseCodes] ((course, code, courseCode) => (course.id === courseCode.courseId, courseCode.codeId === code.id))
     //val codeRelation = oneToManyRelation(courseCodes, codes).via((cc,c) => cc.codeId === c.id)
   }
 
@@ -106,12 +107,14 @@ object Main extends App with PrimitiveTypeMode {
   }
 
   class CourseCodes(
-    val id: Int,
+    @Column("id") val cId: Int,
     val courseId: Int = 0,
     val position: Int = 0,
     val codeId: Int = 0
-  ) extends KeyedEntity[Int] {
+  ) extends KeyedEntity[CompositeKey2[Int,Int]] {
     def this() = this(0)
+
+    def id = compositeKey(courseId, codeId)
 
     //lazy val codes = Race.codeRelation.left(this)
   }
@@ -167,12 +170,11 @@ object Main extends App with PrimitiveTypeMode {
         println(card.punches)
         println(run.competitorId)
         println(person.firstName + " " + person.lastName)
-        println(classDef)
-        println(course)
 
         val cc = course.courseCodes
         cc.foreach { ccc =>
-          println(ccc.codeId)
+          //println(ccc.position)
+          println(ccc.code)
           //val ccq = ccc.codes
 //          ccq.foreach { cq =>
 //            println(cq.code)
