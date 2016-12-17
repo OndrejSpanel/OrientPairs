@@ -12,11 +12,7 @@ object Main extends App with PrimitiveTypeMode {
   val dbName = in.next()
   val user = in.next()
   val password = in.next()
-
-
-  //val pairs = io.Source.fromFile("pairs.csv")
-  //val pairsIn = new BufferedReader(new InputStreamReader(secret))
-
+  val missingPenalty = in.next().toInt
 
   import Db._
 
@@ -49,13 +45,13 @@ object Main extends App with PrimitiveTypeMode {
 
     import Race._
 
-    inTransaction {
+    val results = inTransaction {
       val cs = join(cards, runs, competitors, classDefs, courses)((c, r, p, d, course) =>
         select(c, r, p, d, course)
         on(c.runId === r.id, r.competitorId === p.id, p.classId === d.classId, d.courseId === course.id)
       )
 
-      cs.foreach { case (card, run, person, classDef, course) =>
+      cs.map { case (card, run, person, classDef, course) =>
 
         val missingCodes = {
           val correct = Util.lcs(card.codes, course.courseSeq)
@@ -63,15 +59,19 @@ object Main extends App with PrimitiveTypeMode {
           expected - correct.length
         }
 
-        println(s"${person.firstName} ${person.lastName}: missing $missingCodes")
-
         val note = s"missing $missingCodes"
 
         update(competitors) ( p=>
           where(p.id ===  person.id)
           set(p.note := Some(note))
         )
+
+        (person.id, person.firstName, person.lastName, run.timeMs / 1000 + missingCodes * missingPenalty, missingCodes)
       }
+    }
+
+    for (r <- results) {
+      println(r.productIterator.mkString(" "))
     }
   }
 
