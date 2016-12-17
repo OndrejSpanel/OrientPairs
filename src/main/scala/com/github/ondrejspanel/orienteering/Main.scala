@@ -1,5 +1,7 @@
 package com.github.ondrejspanel.orienteering
 
+import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter}
+
 import org.squeryl.adapters.PostgreSqlAdapter
 import org.squeryl._
 
@@ -47,7 +49,9 @@ object Main extends App with PrimitiveTypeMode {
 
     import Race._
 
-    case class Result(id: Int, category: String, timeSec: Long, missing: Int)
+    case class Result(id: Int, category: String, timeSec: Long, missing: Int) {
+      override def toString = category + "," + Util.timeFormat(timeSec)
+    }
 
     val results = inTransaction {
       val cs = join(cards, runs, competitors, classDefs, courses)((c, r, p, d, course) =>
@@ -73,6 +77,20 @@ object Main extends App with PrimitiveTypeMode {
         val fullName = person.lastName + " " + person.firstName
         fullName -> Result(person.id, person.category, run.timeMs / 1000 + missingCodes * missingPenalty, missingCodes)
       }.toMap
+    }
+
+    val resOut = new FileOutputStream("results.csv")
+    val ow = new OutputStreamWriter(resOut)
+    val resWriter = new BufferedWriter(ow)
+
+    try {
+      results.foreach { case (k, r) =>
+        resWriter.write(k + "," + r.toString + "\n")
+      }
+    } finally {
+      resWriter.close()
+      ow.close()
+      resOut.close()
     }
 
     val pairs = Pairs.pairs

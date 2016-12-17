@@ -29,4 +29,10 @@ object Util {
   def lcs[T](a: Seq[T], b: Seq[T]): Seq[T] = {
     lcs_dp(a, b)
   }
+
+  def timeFormat(sec: Long) = {
+    val minutes = sec / 60
+    val seconds = sec - minutes * 60
+    f"$minutes%d:$seconds%02d"
+  }
 }
