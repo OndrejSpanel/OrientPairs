@@ -29,9 +29,11 @@ object Main extends App with PrimitiveTypeMode {
     val runs = table[Runs]
     val classDefs = table[ClassDefs]
     val codes = table[Codes]
+    val classes = table[Classes]
 
     val courseRelation = oneToManyRelation(courses, courseCodes).via((c,cc) => c.id === cc.courseId)
     val codeRelation = oneToManyRelation(codes, courseCodes).via((c, cc) => cc.codeId === c.id)
+    val categoryRelation = oneToManyRelation(classes, competitors).via((cl, c) => c.classId === cl.id)
   }
 
   def connectToDb(): Unit = {

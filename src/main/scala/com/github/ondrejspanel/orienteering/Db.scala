@@ -81,7 +81,10 @@ object Db extends PrimitiveTypeMode {
   ) extends KeyedEntity[Int] {
     def this() = this(0)
 
-    def category: String = classId.toString
+
+    lazy val categories = Race.categoryRelation.right(this)
+
+    def category: String = categories.headOption.map(_.name).getOrElse("")
   }
 
   class Courses(
@@ -150,6 +153,10 @@ object Db extends PrimitiveTypeMode {
     def this() = this(0)
   }
 
+  class Classes(
+    val id: Int,
+    val name: String
+  ) extends KeyedEntity[Int]
 
 
 }
