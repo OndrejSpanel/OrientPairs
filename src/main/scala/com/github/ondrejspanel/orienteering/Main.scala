@@ -4,13 +4,40 @@ import java.io.{BufferedReader, InputStreamReader}
 import java.sql.Timestamp
 
 import org.squeryl.adapters.PostgreSqlAdapter
-import org.squeryl.{PrimitiveTypeMode, Schema, Session, SessionFactory}
+import org.squeryl._
+import org.squeryl.dsl.{CompositeKey2, ManyToMany, OneToMany}
 
 
 object Main extends App with PrimitiveTypeMode {
 
   def time0: Long = 0
   type Time = Long
+
+  val secret = getClass.getResourceAsStream("/secret.txt")
+
+  val in = new BufferedReader(new InputStreamReader(secret))
+
+  val dbName = in.readLine()
+  val user = in.readLine()
+  val password = in.readLine()
+
+  object Race extends Schema {
+    override def name = Some(dbName)
+
+    override def tableNameFromClassName(tableName: String) = tableName.toLowerCase
+    override def columnNameFromPropertyName(propertyName: String) = propertyName.toLowerCase
+
+    val cards = table[Cards]
+    val courses = table[Courses]
+    val courseCodes = table[CourseCodes]
+    val competitors = table[Competitors]
+    val runs = table[Runs]
+    val classDefs = table[ClassDefs]
+    val codes = table[Codes]
+
+    val courseRelation = oneToManyRelation(courses, courseCodes).via((c,cc) => c.id === cc.courseId)
+    //val codeRelation = oneToManyRelation(courseCodes, codes).via((cc,c) => cc.codeId === c.id)
+  }
 
   class Cards(
     val id: Int,
@@ -25,7 +52,7 @@ object Main extends App with PrimitiveTypeMode {
     val punches: String = "[]",
     val readerConnectionId: Int = 0,
     val printerConnectionId: Option[Int] = Some(0)
-  ) {
+  ) extends KeyedEntity[Int] {
     def this() = this(0)
   }
 
@@ -44,7 +71,7 @@ object Main extends App with PrimitiveTypeMode {
     val badCheck: Boolean = false,
     val cardLent: Boolean = false,
     val cardReturned: Boolean = false
-  ) {
+  ) extends KeyedEntity[Int] {
     def this() = this(0)
   }
 
@@ -62,7 +89,7 @@ object Main extends App with PrimitiveTypeMode {
     val note: Option[String] = Some(""),
     val ranking: Option[String] = Some(""),
     val importId: Option[String] = Some("")
-  ) {
+  ) extends KeyedEntity[Int] {
     def this() = this(0)
   }
 
@@ -72,8 +99,10 @@ object Main extends App with PrimitiveTypeMode {
     val length: Option[Int] = Some(0),
     val climb: Option[Int] = Some(0),
     val note: Option[String] = Some("")
-  ) {
+  ) extends KeyedEntity[Int] {
     def this() = this(0)
+
+    lazy val courseCodes = Race.courseRelation.left(this)
   }
 
   class CourseCodes(
@@ -81,7 +110,20 @@ object Main extends App with PrimitiveTypeMode {
     val courseId: Int = 0,
     val position: Int = 0,
     val codeId: Int = 0
-  ) {
+  ) extends KeyedEntity[Int] {
+    def this() = this(0)
+
+    //lazy val codes = Race.codeRelation.left(this)
+  }
+
+  class Codes(
+    val id: Int,
+    val code: Int = 0,
+    val altCode: Option[Int] = Some(0),
+    val outOfOrder: Boolean = false,
+    val radio: Boolean = false,
+    val note: Option[String] = Some("")
+  ) extends KeyedEntity[Int] {
     def this() = this(0)
   }
 
@@ -100,39 +142,18 @@ object Main extends App with PrimitiveTypeMode {
     val resultsCount: Option[Int] = Some(0),
     val lastStartTimeMin: Option[Int] = Some(0),
     val drawLock: Boolean = false
-  ) {
+  ) extends KeyedEntity[Int] {
     def this() = this(0)
   }
 
   def connectToDb(): Unit = {
     Class.forName("org.postgresql.Driver")
 
-    val secret = getClass.getResourceAsStream("/secret.txt")
-
-    val in = new BufferedReader(new InputStreamReader(secret))
-
-    val dbName = in.readLine()
-    val user = in.readLine()
-    val password = in.readLine()
-
     SessionFactory.concreteFactory = Some(() =>
       Session.create(
         java.sql.DriverManager.getConnection("jdbc:postgresql://localhost/quickevent", user, password),
         new PostgreSqlAdapter))
 
-
-    object Race extends Schema {
-      override def name = Some(dbName)
-
-      override def tableNameFromClassName(tableName: String) = tableName.toLowerCase
-      override def columnNameFromPropertyName(propertyName: String) = propertyName.toLowerCase
-
-      val cards = table[Cards]
-      val courses = table[Courses]
-      val competitors = table[Competitors]
-      val runs = table[Runs]
-      val classDefs = table[ClassDefs]
-    }
 
     import Race._
 
@@ -148,6 +169,15 @@ object Main extends App with PrimitiveTypeMode {
         println(person.firstName + " " + person.lastName)
         println(classDef)
         println(course)
+
+        val cc = course.courseCodes
+        cc.foreach { ccc =>
+          println(ccc.codeId)
+          //val ccq = ccc.codes
+//          ccq.foreach { cq =>
+//            println(cq.code)
+//          }
+        }
       }
     }
   }
