@@ -9,20 +9,25 @@ import org.squeryl.{PrimitiveTypeMode, Schema, Session, SessionFactory}
 
 object Main extends App with PrimitiveTypeMode {
 
-  class Card(
+  def timeDefault: Long = 0
+  type Time = Long
+
+  class cards(
     val id: Int,
-    val runid: Int,
-    val runidassignts: Timestamp,
-    val stageid: Int,
-    val stationnumber: Int,
-    val siid: Int,
-    val checktime: Timestamp,
-    val starttime: Timestamp,
-    val finishtime: Timestamp,
-    val punches: String,
-    val readerconnectionid: Int,
-    val printerconnectionid: Int
-  )
+    val runid: Int = 0,
+    val runidassignts: Timestamp = new Timestamp(0),
+    val stageid: Int = 0,
+    val stationnumber: Int = 0,
+    val siid: Int = 0,
+    val checktime: Time = timeDefault,
+    val starttime: Time = timeDefault,
+    val finishtime: Time = timeDefault,
+    val punches: String = "[]",
+    val readerconnectionid: Int = 0,
+    val printerconnectionid: Option[Int] = Some(0)
+  ) {
+    def this() = this(0)
+  }
 
 
   def connectToDb(): Unit = {
@@ -42,7 +47,11 @@ object Main extends App with PrimitiveTypeMode {
 
 
     object Race extends Schema {
-      val cards = table[Card]
+      override def name = Some("besidka_test")
+
+      override def tableNameFromClassName(tableName: String) = NamingConventionTransforms.snakify(tableName)
+
+      val cards = table[cards]
     }
 
     inTransaction {
@@ -51,11 +60,12 @@ object Main extends App with PrimitiveTypeMode {
           select c
       )
 
-      println(cs.toString)
+      cs.foreach { c =>
+        println(c.punches)
+      }
     }
   }
 
   connectToDb()
-
 
 }
