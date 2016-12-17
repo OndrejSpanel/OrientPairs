@@ -12,7 +12,7 @@ object Main extends App with PrimitiveTypeMode {
   def timeDefault: Long = 0
   type Time = Long
 
-  class cards(
+  class Cards(
     val id: Int,
     val runid: Int = 0,
     val runidassignts: Timestamp = new Timestamp(0),
@@ -52,7 +52,7 @@ object Main extends App with PrimitiveTypeMode {
 
       override def tableNameFromClassName(tableName: String) = NamingConventionTransforms.snakify(tableName)
 
-      val cards = table[cards]
+      val cards = table[Cards]
     }
 
     inTransaction {
