@@ -45,6 +45,8 @@ object Main extends App with PrimitiveTypeMode {
 
     import Race._
 
+    case class Result(id: Int, category: String, timeSec: Long, missing: Int)
+
     val results = inTransaction {
       val cs = join(cards, runs, competitors, classDefs, courses)((c, r, p, d, course) =>
         select(c, r, p, d, course)
@@ -66,12 +68,23 @@ object Main extends App with PrimitiveTypeMode {
           set(p.note := Some(note))
         )
 
-        (person.id, person.firstName, person.lastName, run.timeMs / 1000 + missingCodes * missingPenalty, missingCodes)
-      }
+        val fullName = person.lastName + " " + person.firstName
+        fullName -> Result(person.id, person.category, run.timeMs / 1000 + missingCodes * missingPenalty, missingCodes)
+      }.toMap
     }
 
-    for (r <- results) {
-      println(r.productIterator.mkString(" "))
+    val pairs = Pairs.pairs
+
+    val pairResults = for {
+      (name1, name2) <- pairs
+      r1 <- results.get(name1)
+      r2 <- results.get(name2)
+    } yield {
+      (name1, name2, r1.category, r1.timeSec + r2.timeSec, r1.missing + r2.missing)
+    }
+
+    for (r <- pairResults) {
+      println(r.productIterator.mkString(","))
     }
   }
 

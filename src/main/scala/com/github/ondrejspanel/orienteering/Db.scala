@@ -80,6 +80,8 @@ object Db extends PrimitiveTypeMode {
     val importId: Option[String] = Some("")
   ) extends KeyedEntity[Int] {
     def this() = this(0)
+
+    def category: String = classId.toString
   }
 
   class Courses(
