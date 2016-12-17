@@ -76,6 +76,33 @@ object Main extends App with PrimitiveTypeMode {
     def this() = this(0)
   }
 
+  class CourseCodes(
+    val id: Int,
+    val courseId: Int = 0,
+    val position: Int = 0,
+    val codeId: Int = 0
+  ) {
+    def this() = this(0)
+  }
+
+  class ClassDefs(
+    val id: Int,
+    val classId: Int = 0,
+    val stageId: Int = 0,
+    val courseId: Int = 0,
+    val startSlotIndex: Int = 0,
+    val startTimeMin: Option[Int] = Some(0),
+    val startIntervalMin: Option[Int] = Some(0),
+    val vacantsBefore: Option[Int] = Some(0),
+    val vacantEvery: Option[Int] = Some(0),
+    val vacantsAfter: Option[Int] = Some(0),
+    val mapCount: Option[Int] = Some(0),
+    val resultsCount: Option[Int] = Some(0),
+    val lastStartTimeMin: Option[Int] = Some(0),
+    val drawLock: Boolean = false
+  ) {
+    def this() = this(0)
+  }
 
   def connectToDb(): Unit = {
     Class.forName("org.postgresql.Driver")
@@ -104,20 +131,23 @@ object Main extends App with PrimitiveTypeMode {
       val courses = table[Courses]
       val competitors = table[Competitors]
       val runs = table[Runs]
+      val classDefs = table[ClassDefs]
     }
 
     import Race._
 
     inTransaction {
-      val cs = join(cards, runs, competitors)((c, r, p) =>
-        select(c, r, p)
-        on(c.runId === r.id, r.competitorId === p.id)
+      val cs = join(cards, runs, competitors, classDefs, courses)((c, r, p, d, course) =>
+        select(c, r, p, d, course)
+        on(c.runId === r.id, r.competitorId === p.id, p.classId === d.classId, d.courseId === course.id)
       )
 
-      cs.foreach { case (c, r, p) =>
-        println(c.punches)
-        println(r.competitorId)
-        println(p.firstName + " " + p.lastName)
+      cs.foreach { case (card, run, person, classDef, course) =>
+        println(card.punches)
+        println(run.competitorId)
+        println(person.firstName + " " + person.lastName)
+        println(classDef)
+        println(course)
       }
     }
   }
