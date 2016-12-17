@@ -62,10 +62,10 @@ object Main extends App with PrimitiveTypeMode {
   ) extends KeyedEntity[Int] {
     def this() = this(0)
 
-    def codes = {
+    lazy val codes: Seq[Int] = {
       val json = jacksonMapperJson.readTree(punches)
       for (p <- json.elements.asScala.toList) yield {
-        p.elements.asScala.next
+        p.elements.asScala.next.intValue()
       }
     }
 
@@ -119,7 +119,7 @@ object Main extends App with PrimitiveTypeMode {
 
     lazy val courseCodes = Race.courseRelation.left(this)
 
-    lazy val courseSeq = {
+    lazy val courseSeq: Seq[Int] = {
       val courseWithPos = for {
         ccc <- courseCodes
         code = ccc.codes.headOption.map(_.code)
@@ -192,10 +192,14 @@ object Main extends App with PrimitiveTypeMode {
       )
 
       cs.foreach { case (card, run, person, classDef, course) =>
-        println(person.firstName + " " + person.lastName)
-        println(card.codes)
 
-        println(course.courseSeq)
+        val missingCodes = {
+          val correct = Util.lcs(card.codes, course.courseSeq)
+          val expected = card.codes.length min course.courseSeq.length
+          expected - correct.length
+        }
+
+        println(s"${person.firstName} ${person.lastName}: missing $missingCodes")
       }
     }
   }
