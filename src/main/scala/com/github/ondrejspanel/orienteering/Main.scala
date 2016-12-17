@@ -200,6 +200,13 @@ object Main extends App with PrimitiveTypeMode {
         }
 
         println(s"${person.firstName} ${person.lastName}: missing $missingCodes")
+
+        val note = s"missing $missingCodes"
+
+        update(competitors) ( p=>
+          where(p.id ===  person.id)
+          set(p.note := Some(note))
+        )
       }
     }
   }
