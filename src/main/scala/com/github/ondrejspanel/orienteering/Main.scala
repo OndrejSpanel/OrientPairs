@@ -5,7 +5,6 @@ import java.sql.Timestamp
 
 import org.squeryl.adapters.PostgreSqlAdapter
 import org.squeryl._
-import org.squeryl.dsl.{CompositeKey2, ManyToMany, OneToMany}
 
 
 object Main extends App with PrimitiveTypeMode {
