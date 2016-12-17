@@ -79,33 +79,57 @@ object Main extends App with PrimitiveTypeMode {
       }.toMap
     }
 
-    val resOut = new FileOutputStream("results.csv")
-    val ow = new OutputStreamWriter(resOut)
-    val resWriter = new BufferedWriter(ow)
+    {
+      val resOut = new FileOutputStream("results.csv")
+      val ow = new OutputStreamWriter(resOut)
+      val resWriter = new BufferedWriter(ow)
 
-    try {
-      results.foreach { case (k, r) =>
-        resWriter.write(k + "," + r.toString + "\n")
+      try {
+        results.foreach { case (k, r) =>
+          resWriter.write(k + "," + r.toString + "\n")
+        }
+      } finally {
+        resWriter.close()
+        ow.close()
+        resOut.close()
       }
-    } finally {
-      resWriter.close()
-      ow.close()
-      resOut.close()
     }
 
     val pairs = Pairs.pairs
+
+    case class PairResult(name1: String, name2: String, category: String, time: Long, missed: Int) {
+      override def toString = name1 + "," + name2 + "," + category + "," + Util.timeFormat(time) + "," + missed
+    }
 
     val pairResults = for {
       (name1, name2) <- pairs
       r1 <- results.get(name1)
       r2 <- results.get(name2)
     } yield {
-      (name1, name2, r1.category, r1.timeSec + r2.timeSec, r1.missing + r2.missing)
+      PairResult(name1, name2, r1.category, r1.timeSec + r2.timeSec, r1.missing + r2.missing)
     }
 
     for (r <- pairResults) {
-      println(r.productIterator.mkString(","))
+      println(r.toString)
     }
+
+    {
+      val resOut = new FileOutputStream("resultPairs.csv")
+      val ow = new OutputStreamWriter(resOut)
+      val resWriter = new BufferedWriter(ow)
+
+      try {
+        pairResults.foreach { p =>
+          resWriter.write(p.toString + "\n")
+        }
+      } finally {
+        resWriter.close()
+        ow.close()
+        resOut.close()
+      }
+    }
+
+
   }
 
   connectToDb()
