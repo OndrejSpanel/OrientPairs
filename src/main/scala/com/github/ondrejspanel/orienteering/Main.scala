@@ -14,17 +14,17 @@ object Main extends App with PrimitiveTypeMode {
 
   class Cards(
     val id: Int,
-    val runid: Int = 0,
-    val runidassignts: Timestamp = new Timestamp(0),
-    val stageid: Int = 0,
-    val stationnumber: Int = 0,
-    val siid: Int = 0,
-    val checktime: Time = timeDefault,
-    val starttime: Time = timeDefault,
-    val finishtime: Time = timeDefault,
+    val runId: Int = 0,
+    val runIdAssignts: Timestamp = new Timestamp(0),
+    val stageId: Int = 0,
+    val stationNumber: Int = 0,
+    val siId: Int = 0,
+    val checkTime: Time = timeDefault,
+    val startTime: Time = timeDefault,
+    val finishTime: Time = timeDefault,
     val punches: String = "[]",
-    val readerconnectionid: Int = 0,
-    val printerconnectionid: Option[Int] = Some(0)
+    val readerConnectionId: Int = 0,
+    val printerConnectionId: Option[Int] = Some(0)
   ) {
     def this() = this(0)
   }
@@ -50,14 +50,15 @@ object Main extends App with PrimitiveTypeMode {
     object Race extends Schema {
       override def name = Some(dbName)
 
-      override def tableNameFromClassName(tableName: String) = NamingConventionTransforms.snakify(tableName)
+      override def tableNameFromClassName(tableName: String) = tableName.toLowerCase
+      override def columnNameFromPropertyName(propertyName: String) = propertyName.toLowerCase
 
       val cards = table[Cards]
     }
 
     inTransaction {
       val cs = from(Race.cards)(c =>
-        where(c.runid === 3)
+        where(c.runId === 3)
           select c
       )
 
