@@ -3,11 +3,19 @@ package com.github.ondrejspanel.orienteering
 import java.io.{BufferedReader, InputStreamReader}
 import java.sql.Timestamp
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.squeryl.adapters.PostgreSqlAdapter
 import org.squeryl._
-
+import collection.JavaConverters._
 
 object Main extends App with PrimitiveTypeMode {
+
+  val jacksonMapperJson = new ObjectMapper() with ScalaObjectMapper
+  jacksonMapperJson.registerModule(new DefaultScalaModule)
+  jacksonMapperJson.registerModule(new SimpleModule)
 
   def time0: Long = 0
   type Time = Long
@@ -53,6 +61,14 @@ object Main extends App with PrimitiveTypeMode {
     val printerConnectionId: Option[Int] = Some(0)
   ) extends KeyedEntity[Int] {
     def this() = this(0)
+
+    def codes = {
+      val json = jacksonMapperJson.readTree(punches)
+      for (p <- json.elements.asScala.toList) yield {
+        p.elements.asScala.next
+      }
+    }
+
   }
 
   class Runs(
@@ -177,7 +193,7 @@ object Main extends App with PrimitiveTypeMode {
 
       cs.foreach { case (card, run, person, classDef, course) =>
         println(person.firstName + " " + person.lastName)
-        println(card.punches)
+        println(card.codes)
 
         println(course.courseSeq)
       }
