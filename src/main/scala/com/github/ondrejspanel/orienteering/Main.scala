@@ -97,8 +97,8 @@ object Main extends App with PrimitiveTypeMode {
 
     val pairs = Pairs.pairs
 
-    case class PairResult(name1: String, name2: String, category: String, time: Long, missed: Int) {
-      override def toString = name1 + "," + name2 + "," + category + "," + Util.timeFormat(time) + "," + missed
+    case class PairResult(name1: String, name2: String, category: String, timeSec: Long, missed: Int) {
+      override def toString = name1 + "," + name2 + "," + category + "," + Util.timeFormat(timeSec) + "," + missed
     }
 
     val pairResults = for {
@@ -109,8 +109,13 @@ object Main extends App with PrimitiveTypeMode {
       PairResult(name1, name2, r1.category, r1.timeSec + r2.timeSec, r1.missing + r2.missing)
     }
 
-    for (r <- pairResults) {
-      println(r.toString)
+    val cats = pairResults.groupBy(_.category).map(g => g.copy(_2 = g._2.sortBy(-_.timeSec)))
+
+    for (cat <- cats) {
+      println(s"**** ${cat._1}")
+      for (c <- cat._2) {
+        println(c.toString)
+      }
     }
 
     {
@@ -119,8 +124,11 @@ object Main extends App with PrimitiveTypeMode {
       val resWriter = new BufferedWriter(ow)
 
       try {
-        pairResults.foreach { p =>
-          resWriter.write(p.toString + "\n")
+
+        for (cat <- cats) {
+          for (c <- cat._2) {
+            resWriter.write(c.toString + "\n")
+          }
         }
       } finally {
         resWriter.close()
