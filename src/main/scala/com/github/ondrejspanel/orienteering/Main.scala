@@ -1,7 +1,5 @@
 package com.github.ondrejspanel.orienteering
 
-import java.io.{BufferedReader, InputStreamReader}
-
 import org.squeryl.adapters.PostgreSqlAdapter
 import org.squeryl._
 
@@ -9,11 +7,16 @@ object Main extends App with PrimitiveTypeMode {
 
   val secret = getClass.getResourceAsStream("/secret.txt")
 
-  val in = new BufferedReader(new InputStreamReader(secret))
+  val in = io.Source.fromInputStream(secret).getLines
 
-  val dbName = in.readLine()
-  val user = in.readLine()
-  val password = in.readLine()
+  val dbName = in.next()
+  val user = in.next()
+  val password = in.next()
+
+
+  //val pairs = io.Source.fromFile("pairs.csv")
+  //val pairsIn = new BufferedReader(new InputStreamReader(secret))
+
 
   import Db._
 
