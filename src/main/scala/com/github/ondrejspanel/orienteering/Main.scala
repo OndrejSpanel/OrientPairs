@@ -7,9 +7,7 @@ import org.squeryl._
 
 object Main extends App with PrimitiveTypeMode {
 
-  val secret = getClass.getResourceAsStream("/secret.txt")
-
-  val in = io.Source.fromInputStream(secret).getLines
+  val in = io.Source.fromFile("secret.txt").getLines
 
   val dbName = in.next()
   val user = in.next()
