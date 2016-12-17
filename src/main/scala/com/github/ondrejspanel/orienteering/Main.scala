@@ -37,6 +37,7 @@ object Main extends App with PrimitiveTypeMode {
 
     val in = new BufferedReader(new InputStreamReader(secret))
 
+    val dbName = in.readLine()
     val user = in.readLine()
     val password = in.readLine()
 
@@ -47,7 +48,7 @@ object Main extends App with PrimitiveTypeMode {
 
 
     object Race extends Schema {
-      override def name = Some("besidka_test")
+      override def name = Some(dbName)
 
       override def tableNameFromClassName(tableName: String) = NamingConventionTransforms.snakify(tableName)
 
