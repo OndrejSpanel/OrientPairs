@@ -103,6 +103,19 @@ object Main extends App with PrimitiveTypeMode {
     def this() = this(0)
 
     lazy val courseCodes = Race.courseRelation.left(this)
+
+    lazy val courseSeq = {
+      val courseWithPos = for {
+        ccc <- courseCodes
+        code = ccc.codes.headOption.map(_.code)
+        c <- code
+      } yield {
+        (c, ccc.position)
+      }
+      courseWithPos.toList.sortBy(_._2).map(_._1)
+    }
+
+
   }
 
   class CourseCodes(
@@ -167,14 +180,7 @@ object Main extends App with PrimitiveTypeMode {
         println(person.firstName + " " + person.lastName)
         println(card.punches)
 
-        val cc = course.courseCodes
-        for {
-          ccc <- cc
-          code = ccc.codes.headOption.map(_.code)
-          c <- code
-        } {
-          println(s"$c:${ccc.position}")
-        }
+        println(course.courseSeq)
       }
     }
   }
