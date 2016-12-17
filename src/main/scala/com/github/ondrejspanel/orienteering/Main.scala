@@ -36,7 +36,7 @@ object Main extends App with PrimitiveTypeMode {
     val codes = table[Codes]
 
     val courseRelation = oneToManyRelation(courses, courseCodes).via((c,cc) => c.id === cc.courseId)
-    //val codeRelation = oneToManyRelation(courseCodes, codes).via((cc,c) => cc.codeId === c.id)
+    val codeRelation = oneToManyRelation(codes, courseCodes).via((c, cc) => cc.codeId === c.id)
   }
 
   class Cards(
@@ -113,7 +113,7 @@ object Main extends App with PrimitiveTypeMode {
   ) extends KeyedEntity[Int] {
     def this() = this(0)
 
-    //lazy val codes = Race.codeRelation.left(this)
+    lazy val codes = Race.codeRelation.right(this)
   }
 
   class Codes(
@@ -164,17 +164,16 @@ object Main extends App with PrimitiveTypeMode {
       )
 
       cs.foreach { case (card, run, person, classDef, course) =>
-        println(card.punches)
-        println(run.competitorId)
         println(person.firstName + " " + person.lastName)
+        println(card.punches)
 
         val cc = course.courseCodes
-        cc.foreach { ccc =>
-          println(ccc.codeId)
-          //val ccq = ccc.codes
-//          ccq.foreach { cq =>
-//            println(cq.code)
-//          }
+        for {
+          ccc <- cc
+          code = ccc.codes.headOption.map(_.code)
+          c <- code
+        } {
+          println(s"$c:${ccc.position}")
         }
       }
     }
