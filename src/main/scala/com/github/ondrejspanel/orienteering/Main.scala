@@ -47,8 +47,8 @@ object Main extends App with PrimitiveTypeMode {
 
     import Race._
 
-    case class Result(id: Int, category: String, timeSec: Long, missing: Int) {
-      override def toString = category + "," + Util.timeFormat(timeSec)
+    case class Result(id: Int, category: String, timeSec: Long, missing: Seq[Int]) {
+      override def toString = category + "," + Util.timeFormat(timeSec) + "," + missing.mkString("["," ","]")
     }
 
     val results = inTransaction {
@@ -61,11 +61,12 @@ object Main extends App with PrimitiveTypeMode {
 
         val missingCodes = {
           val correct = Util.lcs(card.codes, course.courseSeq)
-          val expected = card.codes.length min course.courseSeq.length
-          expected - correct.length
+          val expected = course.courseSeq.length
+          course.courseSeq diff correct
         }
+        val missingCodeCount = missingCodes.length
 
-        val note = s"missing $missingCodes"
+        val note = s"missing $missingCodeCount"
 
         update(competitors) ( p=>
           where(p.id ===  person.id)
@@ -73,7 +74,7 @@ object Main extends App with PrimitiveTypeMode {
         )
 
         val fullName = person.lastName + " " + person.firstName
-        fullName -> Result(person.id, person.category, run.timeMs / 1000 + missingCodes * missingPenalty, missingCodes)
+        fullName -> Result(person.id, person.category, run.timeMs / 1000 + missingCodeCount * missingPenalty, missingCodes)
       }.toMap
     }
 
@@ -104,7 +105,7 @@ object Main extends App with PrimitiveTypeMode {
       r1 <- results.get(name1)
       r2 <- results.get(name2)
     } yield {
-      PairResult(name1, name2, Config.mapCategory(r1.category), r1.timeSec + r2.timeSec, r1.missing + r2.missing)
+      PairResult(name1, name2, Config.mapCategory(r1.category), r1.timeSec + r2.timeSec, r1.missing.length + r2.missing.length)
     }
 
     val cats = pairResults.groupBy(_.category).map(g => g.copy(_2 = g._2.sortBy(_.timeSec)))
