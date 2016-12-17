@@ -93,7 +93,7 @@ object Main extends App with PrimitiveTypeMode {
       }
     }
 
-    val pairs = Pairs.pairs
+    val pairs = Config.pairs
 
     case class PairResult(name1: String, name2: String, category: String, timeSec: Long, missed: Int) {
       override def toString = name1 + "," + name2 + "," + category + "," + Util.timeFormat(timeSec) + "," + missed
@@ -104,10 +104,10 @@ object Main extends App with PrimitiveTypeMode {
       r1 <- results.get(name1)
       r2 <- results.get(name2)
     } yield {
-      PairResult(name1, name2, r1.category, r1.timeSec + r2.timeSec, r1.missing + r2.missing)
+      PairResult(name1, name2, Config.mapCategory(r1.category), r1.timeSec + r2.timeSec, r1.missing + r2.missing)
     }
 
-    val cats = pairResults.groupBy(_.category).map(g => g.copy(_2 = g._2.sortBy(-_.timeSec)))
+    val cats = pairResults.groupBy(_.category).map(g => g.copy(_2 = g._2.sortBy(_.timeSec)))
 
     for (cat <- cats) {
       println(s"**** ${cat._1}")
