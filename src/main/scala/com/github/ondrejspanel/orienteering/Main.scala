@@ -47,6 +47,9 @@ object Main extends App with PrimitiveTypeMode {
 
     import Race._
 
+    object Result {
+      def empty: Result = Result(0, "", 3600, Seq())
+    }
     case class Result(id: Int, category: String, timeSec: Long, missing: Seq[Int]) {
       override def toString = category + "," + Util.timeFormat(timeSec) + "," + missing.mkString("["," ","]")
     }
@@ -102,9 +105,9 @@ object Main extends App with PrimitiveTypeMode {
 
     val pairResults = for {
       (name1, name2) <- pairs
-      r1 <- results.get(name1)
-      r2 <- results.get(name2)
     } yield {
+      val r1 = results.getOrElse(name1, Result.empty)
+      val r2 = results.getOrElse(name2, Result.empty)
       PairResult(name1, name2, Config.mapCategory(r1.category), r1.timeSec + r2.timeSec, r1.missing.length + r2.missing.length)
     }
 
