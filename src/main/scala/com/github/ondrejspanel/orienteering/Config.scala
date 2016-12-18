@@ -4,7 +4,7 @@ import scala.collection.immutable.Seq
 object Config {
 
   val pairs: Seq[(String, String)] = {
-    val pairsTxt = io.Source.fromFile("pairs.csv").getLines
+    val pairsTxt = io.Source.fromFile("pairs.csv")("UTF-8").getLines
     for (line <- pairsTxt.toList) yield {
       val fields = line.split(',')
       val name1 = fields(0)
@@ -15,7 +15,7 @@ object Config {
   }
 
   private val categories: Map[String, String] = {
-    val catsTxt = io.Source.fromFile("categories.csv").getLines
+    val catsTxt = io.Source.fromFile("categories.csv")("UTF-8").getLines
 
     catsTxt.toList.flatMap { line =>
       val fields = line.split(',')

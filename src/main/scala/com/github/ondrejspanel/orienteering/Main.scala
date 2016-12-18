@@ -7,7 +7,7 @@ import org.squeryl._
 
 object Main extends App with PrimitiveTypeMode {
 
-  val in = io.Source.fromFile("secret.txt").getLines
+  val in = io.Source.fromFile("secret.txt")("UTF-8").getLines
 
   val dbName = in.next()
   val user = in.next()
@@ -83,7 +83,7 @@ object Main extends App with PrimitiveTypeMode {
 
     {
       val resOut = new FileOutputStream("results.csv")
-      val ow = new OutputStreamWriter(resOut)
+      val ow = new OutputStreamWriter(resOut, "UTF-8")
       val resWriter = new BufferedWriter(ow)
 
       try {
@@ -98,6 +98,24 @@ object Main extends App with PrimitiveTypeMode {
     }
 
     val pairs = Config.pairs
+
+    {
+      val resOut = new FileOutputStream("p.csv")
+      val ow = new OutputStreamWriter(resOut, "UTF-8")
+      val resWriter = new BufferedWriter(ow)
+
+      try {
+        pairs.foreach { case (k, r) =>
+          resWriter.write(k + "," + r + "\n")
+        }
+      } finally {
+        resWriter.close()
+        ow.close()
+        resOut.close()
+      }
+    }
+
+
 
     case class PairResult(name1: String, name2: String, category: String, timeSec: Long, missed: Int) {
       override def toString = name1 + "," + name2 + "," + category + "," + Util.timeFormat(timeSec) + "," + missed
@@ -122,7 +140,7 @@ object Main extends App with PrimitiveTypeMode {
 
     {
       val resOut = new FileOutputStream("resultPairs.csv")
-      val ow = new OutputStreamWriter(resOut)
+      val ow = new OutputStreamWriter(resOut, "UTF-8")
       val resWriter = new BufferedWriter(ow)
 
       try {
